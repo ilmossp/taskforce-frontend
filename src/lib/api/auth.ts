@@ -10,7 +10,9 @@ export async function register(user: Omit<User, 'id'>) {
 }
 
 export async function login(user: Partial<User>) {
-  const data = await axios.post('/login', user)
-  return data
+  await axios.get("/sanctum/csrf-cookie").then(async () => {
+    const data = await axios.post('/login', user)
+    return data
+  })
 }
 

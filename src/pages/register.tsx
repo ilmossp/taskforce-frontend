@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAtom } from "jotai";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { useMutation } from "react-query";
@@ -22,6 +23,8 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { register } from "~/lib/api/index";
+import { getUser } from "~/lib/api/user";
+import { userAtom } from "~/lib/state/atoms";
 
 const formSchema = z
   .object({
@@ -48,8 +51,12 @@ export default function Register() {
 
   const router = useRouter();
 
+  const [,setUser] = useAtom(userAtom)
+
   const mutation = useMutation(register, {
-    onSuccess: () => {
+    onSuccess: async () => {
+      const user = await getUser();
+      setUser(user)
       void router.push("/home");
     },
     onError: (error) => {
@@ -112,7 +119,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Enter your password" />
+                      <Input {...field} placeholder="Enter your password" type="password"/>
                     </FormControl>
 
                     <FormMessage />
@@ -126,7 +133,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Confirm your password" />
+                      <Input {...field} placeholder="Confirm your password" type="password"/>
                     </FormControl>
 
                     <FormMessage />
