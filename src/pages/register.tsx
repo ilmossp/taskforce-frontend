@@ -1,5 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
+import { useMutation } from "react-query";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import {
@@ -19,16 +21,19 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { register } from "~/lib/api/index";
 
-const formSchema = z.object({
-  name: z.string().min(2).max(55),
-  email: z.string().email(),
-  password: z.string().min(8).max(32),
-  confirm_password: z.string().min(8).max(32)
-}) .refine((data) => data.password === data.confirm_password, {
-  message: "Passwords don't match",
-  path: ["confirm_password"],
-});
+const formSchema = z
+  .object({
+    name: z.string().min(2).max(55),
+    email: z.string().email(),
+    password: z.string().min(8).max(32),
+    password_confirmation: z.string().min(8).max(32),
+  })
+  .refine((data) => data.password === data.password_confirmation, {
+    message: "Passwords don't match",
+    path: ["password_confirmation"],
+  });
 
 export default function Register() {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -37,11 +42,23 @@ export default function Register() {
       name: "",
       email: "",
       password: "",
-      confirm_password: ""
+      password_confirmation: "",
+    },
+  });
+
+  const router = useRouter();
+
+  const mutation = useMutation(register, {
+    onSuccess: () => {
+      void router.push("/home");
+    },
+    onError: (error) => {
+      console.log(error);
     },
   });
 
   function onSubmit(data: z.infer<typeof formSchema>) {
+    mutation.mutate(data);
     console.log(data);
   }
 
@@ -53,7 +70,10 @@ export default function Register() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form className="flex gap-3 items-center" onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            className="flex items-center gap-3"
+            onSubmit={form.handleSubmit(onSubmit)}
+          >
             <div>
               <FormField
                 name="name"
@@ -98,8 +118,9 @@ export default function Register() {
                     <FormMessage />
                   </FormItem>
                 )}
-              /> <FormField
-                name="confirm_password"
+              />{" "}
+              <FormField
+                name="password_confirmation"
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
@@ -116,7 +137,7 @@ export default function Register() {
           </form>
         </Form>
       </CardContent>
-      <CardFooter >
+      <CardFooter>
         <Button onClick={form.handleSubmit(onSubmit)}>register</Button>
       </CardFooter>
     </Card>

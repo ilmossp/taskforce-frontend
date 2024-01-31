@@ -3,7 +3,7 @@ export type User = {
   name: string,
   email: string,
   password: string,
-  confirm_password: string,
+  password_confirmation: string,
 }
 
 export type Team = {
